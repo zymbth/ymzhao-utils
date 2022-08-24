@@ -1,0 +1,20 @@
+{
+  "name": "ymzhao-utils",
+  "version": "0.0.2",
+  "description": "Javascript Utils: Collect useful javascript methods",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zymbth/ymzhao-utils.git"
+  },
+  "keywords": ["js"],
+  "author": "ymzhao",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zymbth/ymzhao-utils/issues"
+  },
+  "homepage": "https://github.com/zymbth/ymzhao-utils#readme"
+}
