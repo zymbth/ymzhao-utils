@@ -1,20 +1,27 @@
 {
   "name": "ymzhao-utils",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Javascript Utils: Collect useful javascript methods",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --mode development"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zymbth/ymzhao-utils.git"
   },
-  "keywords": ["js"],
+  "keywords": [
+    "js"
+  ],
   "author": "ymzhao",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/zymbth/ymzhao-utils/issues"
   },
-  "homepage": "https://github.com/zymbth/ymzhao-utils#readme"
+  "homepage": "https://github.com/zymbth/ymzhao-utils#readme",
+  "devDependencies": {
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
 }
