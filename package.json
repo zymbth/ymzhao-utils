@@ -1,6 +1,6 @@
 {
   "name": "ymzhao-utils",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Javascript Utils: Collect useful javascript methods",
   "main": "src/index.js",
   "scripts": {

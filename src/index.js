@@ -5,6 +5,27 @@
 
 
 /**
+ * typeof 获取数据类型
+ * @link https://juejin.cn/post/7000300249235357709#heading-3
+ * @param {any} value 
+ * @returns 
+ */
+export function mTypeof(value) {
+  return value instanceof Element ? "element" :
+    Object.prototype.toString.call(value).replace(/\[object\s(.+)\]/, "$1").toLowerCase()
+}
+
+/**
+ * 获取数据类型
+ * @param {any} value 
+ * @returns 
+ */
+ export function getType(value) {
+  const match = Object.prototype.toString.call(value).match(/ (\w+)/)
+  return match[1].toLocaleLowerCase()
+}
+
+/**
  * 节流函数
  * @param {function} fn 执行函数
  * @param {number} interval 间隔时间，单位：ms
@@ -44,6 +65,147 @@ export function debounce(fn, delay = 300, _this) {
       _this ? fn.call(_this, ...args) : fn(...args)
     }, delay)
   }
+}
+
+/**
+ * 简单的对象深拷贝
+ * 值为undefined的会被忽视
+ * @param {object} obj 
+ * @returns 
+ */
+ export function simpleDeepCopy(obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
+/**
+ * 对象深拷贝
+ * @link https://www.cnblogs.com/wangyong1997/p/13577725.html
+ * @param {any} val 
+ * @returns 
+ */
+export function deepCopy(val) {
+  switch (mTypeof(val)) {
+    case 'array':
+      return val.map(v => deepCopy(v))
+    case 'object':
+      return Object.keys(val)?.reduce((prev, curr) => {
+        prev[curr] = deepCopy(val[curr])
+        return prev
+      }, {})
+    case 'map':
+      let tmpMap = new Map()
+      val.forEach((v, k) => tmpMap.set(k, deepCopy(v)))
+      return tmpMap
+    case 'set':
+      let tmpSet = new Set()
+      for (let v of val.values()) tmpSet.add(deepCopy(v))
+      return tmpSet
+    case 'regexp':
+      return new RegExp(val)
+    case 'date':
+      return new Date(val.valueOf())
+    case 'function':
+    // return new Function('return ' + val.toString()).call(this)
+    case 'string':
+    case 'number':
+    case 'boolean':
+    case 'null':
+    case 'undefined':
+    default:
+      return val
+  }
+}
+
+/**
+ * 深拷贝一个对象
+ * @param {any} obj 
+ * @param {*} hash 
+ * @returns 
+ */
+ export function deepCopy1(obj, hash = new WeakMap()) {
+  if (obj instanceof Date) {
+    return new Date(obj)
+  }
+  if (obj instanceof RegExp) {
+    return new RegExp(obj)
+  }
+  if (hash.has(obj)) {
+    return hash.get(obj)
+  }
+  let allDesc = Object.getOwnPropertyDescriptors(obj)
+  let cloneObj = Object.create(Object.getPrototypeOf(obj), allDesc)
+  hash.set(obj, cloneObj)
+  for (let key of Reflect.ownKeys(obj)) {
+    if (obj[key] && typeof obj[key] === "object") {
+      cloneObj[key] = deepCopy1(obj[key], hash)
+    } else {
+      cloneObj[key] = obj[key]
+    }
+  }
+  return cloneObj
+}
+
+/**
+ * 自用 - 判断俩值是否相等
+ * @param {any} obj1 
+ * @param {any} obj2 
+ * @param {array} excludes 排除项，不对比
+ * @returns 
+ */
+ function isObjectEqual(obj1, obj2, excludes = ['key']) {
+  let type1 = mTypeof(obj1), type2 = mTypeof(obj2)
+  if (type1 !== type2) return false
+  switch(type1) {
+    case 'array':
+      if (obj1.length != obj2.length) return false
+      return obj1.every((v, idx) => isObjectEqual(v, obj2[idx], excludes))
+    case 'object':
+      let keys1 = Object.keys(obj1),
+        keys2 = Object.keys(obj2)
+      if (keys1.length != keys2.length) return false
+      return keys1.every(k => {
+        if(excludes && excludes.includes(k)) return true // 排除项不检查
+        return isObjectEqual(obj1[k], obj2[k], excludes)
+      })
+    case 'string':
+    case 'number':
+    case 'boolean':
+      return obj1 === obj2
+    case 'date':
+      return obj1.getTime() === obj2.getTime()
+    case 'function':
+      return obj1 === obj2
+    case 'map':
+    case 'set':
+      if(obj1.size !== obj2.size) return false
+      const iterator1 = obj1.entries(), iterator2 = obj2.entries()
+      let tmpVal1 = iterator1.next().value, tmpVal2 = iterator2.next().value, ck = true
+      while(tmpVal1 && tmpVal2) {
+        if(tmpVal1[0] !== tmpVal2[0] || tmpVal1[1] !== tmpVal2[1]) {
+          ck = false
+          break
+        }
+        tmpVal1 = iterator1.next().value
+        tmpVal2 = iterator2.next().value
+      }
+      return ck
+    case 'regexp':
+      return obj1.toString() === obj2.toString()
+    case 'null':
+    case 'undefined':
+    default:
+      return true
+  }
+}
+
+/**
+ * 数组去重
+ * @param {array} arr 
+ * @returns 
+ */
+export function distinctArray(arr) {
+  if(!arr || !(arr instanceof Array)) return arr
+  return [...new Set(arr)]
 }
 
 /**
@@ -119,16 +281,6 @@ export function goExitFullscreen() {
 }
 
 /**
- * 获取数据类型
- * @param {any} value 
- * @returns 
- */
-export function getType(value) {
-  const match = Object.prototype.toString.call(value).match(/ (\w+)/)
-  return match[1].toLocaleLowerCase()
-}
-
-/**
  * 停止冒泡事件
  * @param {event} event 
  */
@@ -139,35 +291,6 @@ export function stopPropagation(event) {
   } else {
     event.cancelBubble = true
   }
-}
-
-/**
- * 深拷贝一个对象
- * @param {any} obj 
- * @param {*} hash 
- * @returns 
- */
-export function deepCopy(obj, hash = new WeakMap()) {
-  if (obj instanceof Date) {
-    return new Date(obj)
-  }
-  if (obj instanceof RegExp) {
-    return new RegExp(obj)
-  }
-  if (hash.has(obj)) {
-    return hash.get(obj)
-  }
-  let allDesc = Object.getOwnPropertyDescriptors(obj)
-  let cloneObj = Object.create(Object.getPrototypeOf(obj), allDesc)
-  hash.set(obj, cloneObj)
-  for (let key of Reflect.ownKeys(obj)) {
-    if (obj[key] && typeof obj[key] === "object") {
-      cloneObj[key] = deepCopy(obj[key], hash)
-    } else {
-      cloneObj[key] = obj[key]
-    }
-  }
-  return cloneObj
 }
 
 /**
@@ -257,4 +380,22 @@ export const formatMoney = (money) => {
  */
 export const formatMoneyReg = (money) => {
   return money.replace(new RegExp(`(?!^)(?=(\\d{3})+${money.includes('.') ? '\\.' : '$'})`, 'g'), ',')  
+}
+
+/**
+ * 手动延时
+ * @param {any} val 输入值
+ * @param {number} delay 延时
+ * @return {promise}
+ */
+export function manualDelay(val, delay = 2000) {
+  return new Promise((resolve, reject) => {
+    if(val) {
+      setTimeout(() => {
+        resolve(val)
+      }, delay)
+    } else {
+      reject(new Error(`Manual error: ${val}`))
+    }
+  })  
 }
